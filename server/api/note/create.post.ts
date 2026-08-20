@@ -2,9 +2,9 @@ import { z } from 'zod'
 import prisma from '@@/lib/prisma'
 
 const noteSchema = z.object({
-  title: z.string().max(64),
+  title: z.string().min(1).max(64),
   todos: z.array(z.object({
-    description: z.string().max(128),
+    description: z.string().min(1).max(128),
     checked: z.boolean(),
   })),
 })

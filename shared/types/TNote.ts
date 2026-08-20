@@ -5,8 +5,10 @@ export interface TTodo {
   checked: boolean
 }
 
-export interface TNote extends Omit<Note, 'todos'> {
+export interface TNote extends Omit<Note, 'todos' | 'createdAt' | 'updatedAt'> {
   todos: TTodo[]
+  createdAt: string
+  updatedAt: string
 }
 
 export type TNoteUpdateData = Partial<

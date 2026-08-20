@@ -1,7 +1,9 @@
 import Redis from 'ioredis'
 
-const redis = new Redis()
-const redisSub = new Redis()
+const { redis: { port, host } } = useRuntimeConfig()
+
+const redis = new Redis(port, host)
+const redisSub = new Redis(port, host)
 
 export function useBroadcast() {
   return {

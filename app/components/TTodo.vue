@@ -5,8 +5,16 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div>
-    <h3>{{ props.todo.description }}</h3>
-    <div>{{ props.todo.checked }}</div>
+  <div class="t-todo">
+    <TCheckbox :modelValue="props.todo.checked" />
+    <div>{{ props.todo.description }}</div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.t-todo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+</style>

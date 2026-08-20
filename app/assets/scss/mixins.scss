@@ -1,0 +1,14 @@
+
+@mixin on-hover {
+  &:hover {
+    @media (hover: hover) {
+      @content;
+    }
+  }
+
+  &:active {
+    @media (hover: none) {
+      @content;
+    }
+  }
+}

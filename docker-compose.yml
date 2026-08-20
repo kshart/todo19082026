@@ -1,0 +1,54 @@
+services:
+  nuxt:
+    hostname: nuxt.local
+    image: node:26
+    ports:
+      - '8888:8888'
+    networks:
+      - containers
+    volumes:
+      - ./:/nuxt:delegated
+    environment:
+      DATABASE_URL: 'postgres://${DB_USERNAME:-todo}:${DB_PASSWORD:-todo}@db.local:5432/todo?sslmode=disable&connection_limit=10&connect_timeout=0&max_idle_connection_lifetime=0&pool_timeout=0&socket_timeout=0'
+      REDIS_DB_HOST: 'redis.local'
+      REDIS_DB_PORT: '${FORWARD_REDIS_PORT:-6379}'
+    command: sh -c "npm ci && npx prisma generate && npx prisma db push && npx nuxt dev --port=8888"
+    working_dir: /nuxt
+    depends_on:
+      - postgres
+      - redis
+  postgres:
+    image: postgres:latest
+    hostname: db.local
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-todo}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-todo}"
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - "${FORWARD_POSTGRES_PORT:-5111}:5432"
+    networks:
+      - containers
+  redis:
+    hostname: redis.local
+    image: 'redis:alpine'
+    volumes:
+      - 'redis:/data'
+    networks:
+      - containers
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      retries: 3
+      timeout: 5s
+networks:
+  containers:
+    driver: bridge
+volumes:
+  postgres:
+    driver: local
+  redis:
+    driver: local

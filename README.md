@@ -1,6 +1,5 @@
 # Nuxt Minimal Starter
 
-<!-- sudo docker run -d --restart always --name postgres-todo -p 5223:5432 -e POSTGRES_USER=todo -e POSTGRES_PASSWORD=todo postgres:latest -->
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 

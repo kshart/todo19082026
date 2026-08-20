@@ -85,7 +85,7 @@ export const useNoteEditor = defineStore('noteEditor', () => {
     if (historyTypingTimeoutId) {
       clearTimeout(historyTypingTimeoutId)
     } else {
-      historyUndoPush()
+      historyUndoPush(true)
     }
 
     if (force) {
