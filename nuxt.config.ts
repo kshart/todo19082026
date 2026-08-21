@@ -4,6 +4,12 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@pinia/nuxt',
   ],
+  components: [
+    {
+      path: '@/components',
+      pathPrefix: false,
+    },
+  ],
   devtools: { enabled: true },
   app: {
     head: {
@@ -24,6 +30,11 @@ export default defineNuxtConfig({
     },
   },
   compatibilityDate: '2026-08-19',
+  nitro: {
+    experimental: {
+      websocket: true,
+    },
+  },
   vite: {
     css: {
       preprocessorOptions: {
@@ -32,6 +43,9 @@ export default defineNuxtConfig({
         },
       },
     },
+  },
+  typescript: {
+    typeCheck: true,
   },
   eslint: {
     config: {

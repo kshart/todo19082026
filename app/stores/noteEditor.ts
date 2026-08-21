@@ -14,12 +14,73 @@ export const useNoteEditor = defineStore('noteEditor', () => {
     redoHistory.value = []
   }
 
+  function noteRestoreBackup() {
+    if (import.meta.server) {
+      return
+    }
+    watch(() => note.value?.uuid, value => sessionStorage.setItem('noteEditor/uuid', value || ''))
+    watch(form, value => sessionStorage.setItem('noteEditor/form', JSON.stringify(value)), { deep: true })
+    watch(undoHistory, value => sessionStorage.setItem('noteEditor/undoHistory', JSON.stringify(value)), { deep: true })
+    watch(redoHistory, value => sessionStorage.setItem('noteEditor/redoHistory', JSON.stringify(value)), { deep: true })
+
+    const savedUuid = sessionStorage.getItem('noteEditor/uuid')
+    if (savedUuid && savedUuid === note.value?.uuid) {
+      try {
+        const undoHistorySaved = JSON.parse(sessionStorage.getItem('noteEditor/undoHistory') || '')
+
+        if (undoHistorySaved) {
+          undoHistory.value = undoHistorySaved
+        }
+      } catch (e) {
+        console.error(e)
+      }
+
+      try {
+        const redoHistorySaved = JSON.parse(sessionStorage.getItem('noteEditor/redoHistory') || '')
+
+        if (redoHistorySaved) {
+          redoHistory.value = redoHistorySaved
+        }
+      } catch (e) {
+        console.error(e)
+      }
+
+      try {
+        const formSaved = JSON.parse(sessionStorage.getItem('noteEditor/form') || '')
+
+        if (formSaved) {
+          form.value = formSaved
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+  }
+
   async function noteFetch(noteUuid: string) {
-    const noteModel = await $fetch<TNote>(`/api/note/${noteUuid}`)
+    const noteModel = await $fetch<TNote>(`/api/note/${noteUuid}`, {
+      onResponseError({ response }) {
+        throw createError({
+          statusCode: response.status,
+          message: response?._data?.message,
+        })
+      },
+    })
 
     note.value = noteModel
     form.value.title = noteModel.title
     form.value.todos = noteModel.todos
+    historyClear()
+  }
+
+  async function noteUpdateByServer(newNote: TNote) {
+    if (!note.value) {
+      return
+    }
+
+    note.value = newNote
+    form.value.title = newNote.title
+    form.value.todos = newNote.todos
     historyClear()
   }
 
@@ -121,8 +182,10 @@ export const useNoteEditor = defineStore('noteEditor', () => {
     note,
     form,
     noteFetch,
+    noteRestoreBackup,
     noteSave,
     noteDelete,
+    noteUpdateByServer,
     todoCreate,
     todoDelete,
     undo,

@@ -21,12 +21,12 @@ function close() {
     <dialog
       ref="modal"
       closedby="any"
-      class="t-modal-dialog"
+      class="ui-modal-dialog"
     >
-      <div class="t-modal-dialog__content-wrap">
-        <div class="t-modal-dialog__content">
+      <div class="ui-modal-dialog__content-wrap">
+        <div class="ui-modal-dialog__content">
           <button
-            class="t-modal-dialog__close-button"
+            class="ui-modal-dialog__close-button"
             @click="close()"
           >
             ❌
@@ -39,12 +39,12 @@ function close() {
 </template>
 
 <style scoped lang="scss">
-.t-modal-dialog::backdrop {
+.ui-modal-dialog::backdrop {
   background: #00000033;
   backdrop-filter: blur(1.2px);
 }
 
-.t-modal-dialog__content-wrap {
+.ui-modal-dialog__content-wrap {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -54,23 +54,33 @@ function close() {
   z-index: 1001;
 }
 
-.t-modal-dialog__content {
+.ui-modal-dialog__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  position: relative;
   background: #eee;
-  padding: 15px;
-  border-radius: 7px;
+  padding: 15px 30px;
+  border-radius: 10px;
   max-width: 600px;
   pointer-events: all;
-
-  &:deep(h1) {
-    margin-top: 0;
-  }
 }
 
-.t-modal-dialog__close-button {
+.ui-modal-dialog__close-button {
+  position: absolute;
+  right: 10px;
+  top: 10px;
   border: none;
-  background: #f00;
-  padding: 6px;
+  background: #77777722;
+  padding: 5px;
+  font-size: 10px;
   border-radius: 100%;
   cursor: pointer;
+  transition: background ease-out 0.1s;
+
+  @include on-hover {
+    background: #77777733;
+  }
 }
 </style>

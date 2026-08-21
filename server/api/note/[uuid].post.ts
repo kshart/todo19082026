@@ -1,18 +1,15 @@
-import { z } from 'zod'
+import { v4 as uuidV4 } from 'uuid'
 import prisma from '@@/lib/prisma'
-
-const noteUpdateSchema = z.object({
-  title: z.string().min(1).max(64),
-  todos: z.array(z.object({
-    description: z.string().min(1).max(128),
-    checked: z.boolean(),
-  })),
-})
 
 export default defineEventHandler(async (event) => {
   const broadcast = useBroadcast()
+  const noteSchema = useNoteSchema()
   const uuid = String(event.context.params?.uuid)
-  const data = await readValidatedBody(event, noteUpdateSchema.parse)
+  const { data, error } = await readValidatedBody(event, data => noteSchema.note.safeParse(data))
+
+  if (error) {
+    throw createError({ status: 422, data: error.flatten().fieldErrors })
+  }
 
   const noteExsist = await prisma.note.count({
     where: { uuid },
@@ -24,10 +21,13 @@ export default defineEventHandler(async (event) => {
 
   const note = await prisma.note.update({
     where: { uuid },
-    data,
+    data: {
+      ...data,
+      updatedUuid: uuidV4(),
+    },
   })
 
-  broadcast.publish('note:u', { note })
+  broadcast.publish('note:u', note)
 
   return note
 })

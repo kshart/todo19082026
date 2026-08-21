@@ -2,8 +2,11 @@
 const route = useRoute()
 const noteUuid = String(route.params.uuid || '')
 const noteEditor = useNoteEditor()
+const notification = useNotification()
 
 await callOnce(noteUuid, () => noteEditor.noteFetch(noteUuid))
+
+onMounted(() => noteEditor.noteRestoreBackup())
 
 if (!noteEditor.note) {
   throw createError({ statusCode: 404 })
@@ -14,9 +17,40 @@ useHead({
 })
 
 async function noteDelete() {
-  await noteEditor.noteDelete()
+  try {
+    await noteEditor.noteDelete()
 
-  return navigateTo('/')
+    return navigateTo('/')
+  } catch (error) {
+    let text: string | undefined = undefined
+
+    if (error instanceof Error) {
+      text = error.message
+    }
+
+    notification.create({
+      type: 'warn',
+      title: 'Ошибка удаления',
+      text,
+    })
+  }
+}
+
+const isSaving = ref(false)
+const isDeleted = ref(false)
+
+async function noteSave() {
+  try {
+    isSaving.value = true
+    await noteEditor.noteSave()
+  } catch (error) {
+    notification.createByFetchError({
+      type: 'warn',
+      title: 'Ошибка сохранения',
+    }, error)
+  } finally {
+    isSaving.value = false
+  }
 }
 
 function onClickCheckbox(todo: TTodo) {
@@ -71,6 +105,31 @@ function onChange() {
 onMounted(() => {
   window.addEventListener('keydown', onKeyDown)
 })
+
+if (import.meta.client) {
+  useSocketSubscribe(computed(() => ['note:delete']), async (event: string, data: unknown) => {
+    const uuid = data as string
+
+    if (uuid === noteUuid) {
+      isDeleted.value = true
+    }
+  })
+
+  useSocketSubscribe(computed(() => ['note:u']), async (event: string, data: unknown) => {
+    const note = data as TNote
+
+    await new Promise(res => setTimeout(res, 500))
+
+    if (note.uuid === noteUuid && note.updatedUuid !== noteEditor.note?.updatedUuid) {
+      noteEditor.noteUpdateByServer(note)
+
+      notification.create({
+        type: 'info',
+        title: 'Заметка была измененна',
+      })
+    }
+  })
+}
 </script>
 
 <template>
@@ -81,16 +140,15 @@ onMounted(() => {
         {{ route.params.uuid }}
       </div>
     </h1>
-
     <h4>Название заметки</h4>
-    <TTextInput
+    <UITextInput
       v-model="noteEditor.form.title"
       @beforeinput="onBeforeInput"
       @change="onChange"
     />
 
     <h4>Список дел</h4>
-    <TBtn @click="noteEditor.todoCreate('asd')">Добавить</TBtn>
+    <UIBtn @click="noteEditor.todoCreate('Новая заметка')">Добавить</UIBtn>
 
     <div class="todo-list">
       <div
@@ -98,11 +156,11 @@ onMounted(() => {
         :key="index"
         class="todo-list__record"
       >
-        <TCheckbox
+        <UICheckbox
           :modelValue="todo.checked"
           @update:modelValue="onClickCheckbox(todo)"
         />
-        <TTextInput
+        <UITextInput
           v-model="todo.description"
           @beforeinput="onBeforeInput"
           @change="onChange"
@@ -112,30 +170,37 @@ onMounted(() => {
 
     <div class="action-list">
       <div>
-        <TBtn @click="noteEditor.undo()">undo</TBtn>
-        <TBtn @click="noteEditor.redo()">redo</TBtn>
+        <UIBtn @click="noteEditor.undo()">undo</UIBtn>
+        <UIBtn @click="noteEditor.redo()">redo</UIBtn>
       </div>
       <div>
-        <TBtn @click="noteEditor.noteSave()">Сохранить</TBtn>
-        <TModal>
-          <TBtn>Удалить</TBtn>
+        <UIBtn @click="noteSave()">Сохранить {{ isSaving ? '҉' : '' }}</UIBtn>
+        <UIModal>
+          <UIBtn>Удалить</UIBtn>
           <template #content>
             <h1>Точно удалить?</h1>
-            <TBtn @click="noteDelete()">Удалить</TBtn>
+            <UIBtn @click="noteDelete()">Удалить</UIBtn>
           </template>
-        </TModal>
+        </UIModal>
       </div>
     </div>
-  </div>
 
-  <h1>undoHistory</h1>
-  <pre style="font-size:9px">{{ noteEditor.undoHistory }}</pre>
-  <h1>redoHistory</h1>
-  <pre style="font-size:9px">{{ noteEditor.redoHistory }}</pre>
+    <div
+      v-if="isDeleted"
+      class="overlay-is-deleted"
+    >
+      <h2>Заметка была удалена</h2>
+      <NuxtLink to="/">
+        <UIBtn>Домой</UIBtn>
+      </NuxtLink>
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
 .note-page {
+  padding-bottom: 15px;
+
   .page-title {
     font-size: 1.4em;
     position: relative;
@@ -175,5 +240,17 @@ onMounted(() => {
     display: flex;
     gap: 5px;
   }
+}
+
+.overlay-is-deleted {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  background: #eeeeee77;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-shadow: 1px 1px 3px #777;
+  backdrop-filter: blur(1.2px);
 }
 </style>

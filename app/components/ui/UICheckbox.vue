@@ -5,13 +5,13 @@ const model = defineModel({ type: Boolean, default: false })
 <template>
   <input
     v-model="model"
-    class="t-checkbox"
+    class="ui-checkbox"
     type="checkbox"
   >
 </template>
 
 <style scoped lang="scss">
-.t-checkbox {
+.ui-checkbox {
   position: relative;
   appearance: none;
   cursor: pointer;
