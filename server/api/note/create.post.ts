@@ -1,17 +1,13 @@
-import { z } from 'zod'
 import prisma from '@@/lib/prisma'
-
-const noteSchema = z.object({
-  title: z.string().min(1).max(64),
-  todos: z.array(z.object({
-    description: z.string().min(1).max(128),
-    checked: z.boolean(),
-  })),
-})
 
 export default defineEventHandler(async (event) => {
   const broadcast = useBroadcast()
-  const data = await readValidatedBody(event, noteSchema.parse)
+  const noteSchema = useNoteSchema()
+  const { data, error } = await readValidatedBody(event, data => noteSchema.note.safeParse(data))
+
+  if (error) {
+    throw createError({ status: 422, data: error.flatten().fieldErrors })
+  }
 
   const note = await prisma.note.create({
     data: {

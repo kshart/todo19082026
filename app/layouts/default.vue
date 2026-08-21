@@ -17,6 +17,8 @@
       </div>
     </TPageHeader>
 
+    <UINotificationHandler />
+
     <TPageMain>
       <slot />
     </TPageMain>

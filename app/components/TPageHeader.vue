@@ -13,7 +13,7 @@
   position: sticky;
   top: 0;
   background: #fff;
-  z-index: 2;
+  z-index: 3;
 
   :deep(a) {
     color: #444;

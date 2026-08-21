@@ -6,7 +6,7 @@ const props = defineProps<{
 
 <template>
   <div class="t-todo">
-    <TCheckbox :modelValue="props.todo.checked" />
+    <UICheckbox :modelValue="props.todo.checked" />
     <div>{{ props.todo.description }}</div>
   </div>
 </template>

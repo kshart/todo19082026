@@ -1,6 +1,13 @@
 import { Server as Engine } from 'engine.io'
 import { Server } from 'socket.io'
 import { defineEventHandler } from 'h3'
+import type { H3EventContext } from 'h3'
+
+declare module 'node:http' {
+  interface IncomingMessage {
+    context?: H3EventContext
+  }
+}
 
 export default defineNitroPlugin((nitroApp) => {
   const engine = new Engine()

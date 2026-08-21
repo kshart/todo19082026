@@ -1,15 +1,17 @@
 <script setup lang="ts">
+const model = defineModel({ type: String, default: '' })
 </script>
 
 <template>
-  <button class="t-btn">
-    <slot />
-  </button>
+  <input
+    v-model="model"
+    class="ui-text-input"
+  >
 </template>
 
 <style scoped lang="scss">
-.t-btn {
-  background: #d9d9d9;
+.ui-text-input {
+  background: #eee;
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
@@ -17,7 +19,7 @@
   transition: background ease-out 0.1s;
 
   @include on-hover {
-    background: #F59846;
+    background: #cfcfcf;
   }
 }
 </style>

@@ -10,7 +10,7 @@ export default defineEventHandler(async (event): Promise<Paginator<TNote>> => {
 
   const data = await prisma.note.findMany({
     orderBy: {
-      updatedAt: 'desc',
+      createdAt: 'desc',
     },
     skip: page * perPage,
     take: perPage,
